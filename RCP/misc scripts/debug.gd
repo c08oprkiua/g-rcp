@@ -1,5 +1,7 @@
 extends Control
 
+export var enabled:bool = true
+
 onready var fps:Label = $monitors/fps
 onready var rpm:Label = $monitors/rpm
 onready var gear:Label = $monitors/gear
@@ -11,16 +13,22 @@ onready var turbo_psi:Label = $monitors/turbo_psi
 
 onready var steering_wheel:TextureRect = $sw
 
-onready var car:RigidBody = get_parent().get_node("car")
+onready var car:SeVeCar = get_parent().get_node("car")
 
-func _process(delta):
-	if delta>0:
-		fps.text = "fps: "+str(1.0/delta)
-		rpm.text = "rpm: "+str(car.get("rpm"))
-		gear.text = "gear: "+str(car.get("gear"))
-		kph.text = "kph: "+str(int(car.linear_velocity.length()*2.2))
-		torque.text = "torque: "+str(car.get("tq"))
-		rpm_speed.text = "rpmspeed: "+str(car.get("speedrpm"))
-		force.text = "force: "+str(car.get("gforce"))
-		turbo_psi.text = "turbo psi: "+str(car.get("psi"))
-		steering_wheel.rect_rotation = -car.get("steer")*400
+func _ready() -> void:
+	if not enabled:
+		set_process(false)
+		hide()
+
+func _process(delta:float) -> void:
+	if delta > 0 and enabled:
+		fps.text = "fps: "+String(1.0/delta)
+		
+		rpm.text = "rpm: "+String(car.rpm)
+		gear.text = "gear: "+String(car.gear)
+		kph.text = "kph: "+String(int(car.linear_velocity.length()*2.2))
+		torque.text = "torque: "+String(car.tq)
+		rpm_speed.text = "rpmspeed: "+String(car.speedrpm)
+		force.text = "force: "+String(car.gforce)
+		turbo_psi.text = "turbo psi: "+String(car.psi)
+		steering_wheel.rect_rotation = -car.steer*400

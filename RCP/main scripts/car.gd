@@ -3,20 +3,20 @@ extends RigidBody
 class_name SeVeCar
 
 #AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-var TorqueScale = 0.75 # keep it this way
+var TorqueScale:float = 0.75 # keep it this way
 
 #gameplay
 export var UseMouseSteering = false # Use Mouse Steering
-export var SteeringAssistance = 1.0 # Auto Counter-Steer Rate
-export var SteeringAssistanceAngular = 0.2 # Auto Counter-Steer Rate (AngularVelocity-based)
-export var MouseSteerDeadzone = 0.0 # Mouse Steer Deadzone
-export var MouseSteerSensitivity = 1.0 # Mouse Steer Sensitivity
-export var MouseSteeringLinearity = 100.0 # Mouse Steer Linearity
-export var KeyboardSteerSpeed = 0.03 # Steering Rate
-export var KeyboardReturnSpeed = 0.05 # Steering Return Rate
-export var KeyboardSteerDecay = 0.025 # Steering rate decaying under car's velocity
-export var KeyboardReturnDecay = 0.025 # Steering return rate decaying under car's velocity
-export var KeyboardSteerAmountDecay = 0.075 # Understeer Prevention
+export var SteeringAssistance:float = 1.0 # Auto Counter-Steer Rate
+export var SteeringAssistanceAngular:float = 0.2 # Auto Counter-Steer Rate (AngularVelocity-based)
+export var MouseSteerDeadzone:float = 0.0 # Mouse Steer Deadzone
+export var MouseSteerSensitivity:float = 1.0 # Mouse Steer Sensitivity
+export var MouseSteeringLinearity:float = 100.0 # Mouse Steer Linearity
+export var KeyboardSteerSpeed:float = 0.03 # Steering Rate
+export var KeyboardReturnSpeed:float = 0.05 # Steering Return Rate
+export var KeyboardSteerDecay:float = 0.025 # Steering rate decaying under car's velocity
+export var KeyboardReturnDecay:float = 0.025 # Steering return rate decaying under car's velocity
+export var KeyboardSteerAmountDecay:float = 0.075 # Understeer Prevention
 export var NoStall = false # Prevents engine from going under 100 RPM
 export var GearAssistant = [20,2,0.944087,6000,5500] # Shift delay | Level (0 - 2) | Speed Influence (will be automatically set) | Downshift RPM Influence | Upshift RPM Influence
 
@@ -35,72 +35,72 @@ export var TCS = [0.05, 0.5, 0] # Sensitivity | Threshold | Enabled
 #TUNING
 
 #transmission
-export var TransmissionType = 0 # 0 = Full Manual, 1 = Sequential
-export var ClutchGrip = 0.75 # Grip between the engine and the driveshaft.
-export var FinalDriveRatio = 4.25
+export var TransmissionType:int = 0 # 0 = Full Manual, 1 = Sequential
+export var ClutchGrip:float = 0.75 # Grip between the engine and the driveshaft.
+export var FinalDriveRatio:float = 4.25
 export var GearRatios = [ 3.250, 1.894, 1.259, 0.937, 0.771 ] # Add an extra item to extend gears.
-export var ReverseRatio = 3.153
-export var RatioMult = 9.5 # FinalDriveRatio multiplier to find accuracy.
-export var ShiftClutchOff = 0.75
+export var ReverseRatio:float = 3.153
+export var RatioMult:float = 9.5 # FinalDriveRatio multiplier to find accuracy.
+export var ShiftClutchOff:float = 0.75
 
 #power-to-wheel
-export var PowerToWheel = 0.9 # Amount of torque being sent to the wheels upon higher gear ratio. (Keep untouched recommended)
-export var DriveShaftGrip = 0.75 # Grip between the wheels and the driveshaft. (Must be matched to ClutchGrip in most cases)
-export var BiteStrength = 3.0 # i forgor
+export var PowerToWheel:float = 0.9 # Amount of torque being sent to the wheels upon higher gear ratio. (Keep untouched recommended)
+export var DriveShaftGrip:float = 0.75 # Grip between the wheels and the driveshaft. (Must be matched to ClutchGrip in most cases)
+export var BiteStrength:float = 3.0 # i forgor
 
 # Needed to keep the powertrain from spazzing. But could sometimes be pretty messy to find balance between horrible sense of acceleration and instability.
-export var ClutchStability = 0.5
-export var StabilityThreshold = 150.0
-export var StabiliseGears = 0.15
+export var ClutchStability:float = 0.5
+export var StabilityThreshold:float = 150.0
+export var StabiliseGears:float = 0.15
 
 #diff (EXPERIMENTAL)
-export var Locking = 8.0
-export var Preload = 0.1
-export var CoastPreload = 0.0
+export var Locking:float = 8.0
+export var Preload:float = 0.1
+export var CoastPreload:float = 0.0
 
 #engine
-export var EngineWeight = 1.6 # Higher weight makes it more invulnerable to resistable forces but responds slowly.
-export var MaxTorque = 10000.0 # Amount of torque can recieve before valve-float occurs.
-export var TorqueDecline = 1.0 # Probability of valve-floating.
-export var PotentialTorque = 0.049 # Basically a multiplier of the two above.
-export var StartingTorque = 40.0 # Adds up extra torque to compensate at low RPMs.
-export var CrossPoint = 5252.0 # Higher numbers makes the horsepower graph rise earlier. (just for measurements)
-export var EngineFriction = 1.0 # Decreases rev.
-export var EngineDrag = 5.0 # Decreases rev as it gets higher.
-export var ThrottleResponse = 0.5 # Fuel injection rate. (range: 0-1)
-export var RPMLimit = 7000.0
-export var IdleRPM = 800.0
-export var IdleThrottle = 0.1 # Throttle on idle RPM
+export var EngineWeight:float = 1.6 # Higher weight makes it more invulnerable to resistable forces but responds slowly.
+export var MaxTorque:float = 10000.0 # Amount of torque can recieve before valve-float occurs.
+export var TorqueDecline:float = 1.0 # Probability of valve-floating.
+export var PotentialTorque:float = 0.049 # Basically a multiplier of the two above.
+export var StartingTorque:float = 40.0 # Adds up extra torque to compensate at low RPMs.
+export var CrossPoint:float = 5252.0 # Higher numbers makes the horsepower graph rise earlier. (just for measurements)
+export var EngineFriction:float = 1.0 # Decreases rev.
+export var EngineDrag:float = 5.0 # Decreases rev as it gets higher.
+export var ThrottleResponse:float = 0.5 # Fuel injection rate. (range: 0-1)
+export var RPMLimit:float = 7000.0
+export var IdleRPM:float = 800.0
+export var IdleThrottle:float = 0.1 # Throttle on idle RPM
 
 export var RevBouncing = true # Enable realistic rev limiter
-export var RevLimiterDelay = 5.0 # Redline bounce duration (Set to 0 to rev beyond RPM limit)
+export var RevLimiterDelay:float = 5.0 # Redline bounce duration (Set to 0 to rev beyond RPM limit)
 
-export var LaunchRPM = 0.0 # Set to 0 to disable.
+export var LaunchRPM:float = 0.0 # Set to 0 to disable.
 
 #turbo
 export var TurboInstalled = false # Enables turbo
 export var TurboAmount = 1 # Turbo power multiplication.
-export var MaxPSI = 8.0 # Maximum air generated by the turbo
-export var EngineCompressionRatio = 9.0 # Piston travel distance
-export var TurboSize = 8.0 # Higher = More turbo lag
-export var Compressor = 0.14 # Higher = Allows more spooling on low RPM
-export var SpoolThreshold = 0.1 # Range: 0 - 0.9999
-export var BlowoffRate = 0.14 # Range: 0 - 1
-export var TurboEfficiency = 0.06 # Range: 0 - 1
-export var TurboVacuum = 1.0 # Torque deficiency upon idling turbo
+export var MaxPSI:float = 8.0 # Maximum air generated by the turbo
+export var EngineCompressionRatio:float = 9.0 # Piston travel distance
+export var TurboSize:float = 8.0 # Higher = More turbo lag
+export var Compressor:float = 0.14 # Higher = Allows more spooling on low RPM
+export var SpoolThreshold:float = 0.1 # Range: 0 - 0.9999
+export var BlowoffRate:float = 0.14 # Range: 0 - 1
+export var TurboEfficiency:float = 0.06 # Range: 0 - 1
+export var TurboVacuum:float = 1.0 # Torque deficiency upon idling turbo
 
-export var BackfireRate = 3.0
-export var BackfireThreshold = 0.9
+export var BackfireRate:float = 3.0
+export var BackfireThreshold:float = 0.9
 
 #chassis
-export var BrakeStrength = 100.0
+export var BrakeStrength:float = 100.0
 
 #aero
-export var Drag = 3.0/2.0
-export var Downforce = 1.0
-export var Pitching = -0.05
-export var Tilting = 0.0
-export var Yawing = 0.0
+export var Drag:float = 3.0/2.0
+export var Downforce:float = 1.0
+export var Pitching:float = -0.05
+export var Tilting:float = 0.0
+export var Yawing:float = 0.0
 
 #----
 
@@ -113,41 +113,41 @@ onready var snd_engine:AudioStreamPlayer3D = $engine
 #system
 var visualisation = false
 var wheels = 0
-var reverseassistdelay = 0.0
-var dsweight = 0.0
-var dsweightrun = 0.0
-var clutchon = 0.0
-var rpm = 0.0
-var feedback = 0.0
-var gas = 0.0
-var brake = 0.0
-var handbrake = 0.0
+var reverseassistdelay:float = 0.0
+var dsweight:float = 0.0
+var dsweightrun:float = 0.0
+var clutchon:float = 0.0
+var rpm:float = 0.0
+var feedback:float = 0.0
+var gas:float = 0.0
+var brake:float = 0.0
+var handbrake:float = 0.0
 var gear = 0
-var steer = 0.0
-var steer2 = 0.0
-var throttle = 0.0
+var steer:float = 0.0
+var steer2:float = 0.0
+var throttle:float = 0.0
 var ratio = 1
 var torquedrag = 1.0
-var resistance = 0.0
-var resistance2 = 0.0
-var limitdel = 0.0
-var shiftdel = 0.0
-var torquereadout = 0.0
-var hpreadout = 0.0
-var psi = 0.0
-var pastpsi = 0.0
-var vacuum = 0.0
-var boosting = 0.0
-var speedrpm = 0.0
+var resistance:float = 0.0
+var resistance2:float = 0.0
+var limitdel:float = 0.0
+var shiftdel:float = 0.0
+var torquereadout:float = 0.0
+var hpreadout:float = 0.0
+var psi:float = 0.0
+var pastpsi:float = 0.0
+var vacuum:float = 0.0
+var boosting:float = 0.0
+var speedrpm:float = 0.0
 var wheelsonground = 0
 var onground = false
-var brakethreshold = 0.0
-var brakethresholdrun = 0.0
+var brakethreshold:float = 0.0
+var brakethresholdrun:float = 0.0
 
-var currenttorque = 0.0
+var currenttorque:float = 0.0
 
-var tq = 0.0
-var hp = 0.0
+var tq:float = 0.0
+var hp:float = 0.0
 
 var gpedal = false
 var bpedal = false
@@ -159,28 +159,26 @@ var su = false
 var sd = false
 
 #misc
-var cgroundmaterial = 0.0
-var wheelsforce = 0.0
+var cgroundmaterial:float = 0.0
+var wheelsforce:float = 0.0
 
 var absflashed = false
 var tcsflashed = false
 var espflashed = false
 var backfiretriggered = false
 
-var skidding = 0.0
-var skidding2 = 0.0
+var skidding:float = 0.0
+var skidding2:float = 0.0
 var wind = 0.0
-var pastvelocity = 0.0
-var gforce = 0.0
+var pastvelocity:float = 0.0
+var gforce:float = 0.0
 
-var blow_psi = 0.0
-var blowvol = 0.0
+var blow_psi:float = 0.0
+var blowvol:float = 0.0
 
 #-------
 
-func _ready():
-	
-	
+func _ready() -> void:
 #	if name == "abstest":
 #		ABS[4] = 0
 	
@@ -312,10 +310,7 @@ func _physics_process(_delta):
 	
 	steer = clamp(steer, -1.0, 1.0)
 	
-	#aerodynamics
-	wind = global_transform.basis.orthonormalized().xform_inv(get_linear_velocity())/60.0
-	
-	add_central_force(Vector3(global_transform.basis.orthonormalized().xform(Vector3(-(wind.x*Drag)*60.0,-wind.z*Downforce -wind.y*Drag,-(wind.z*Drag)*60.0))))
+	aerodynamics()
 	
 	currenttorque = (rpm - (rpm * (rpm * TorqueDecline)) / MaxTorque) * PotentialTorque + StartingTorque
 	if currenttorque<0.0:
@@ -404,8 +399,8 @@ func _physics_process(_delta):
 			var interferance = gpedal
 			gpedal = bpedal
 			bpedal = interferance
-		
-		
+	
+	
 	if gear<len(GearRatios):
 		if su and clutchon<ShiftClutchOff or su and GearAssistant[1]>0 or su and TransmissionType == 1:
 			if GearAssistant[1]>0 and not gear<1:
@@ -414,23 +409,23 @@ func _physics_process(_delta):
 	if gear>-1:
 		if sd and clutchon<ShiftClutchOff or sd and GearAssistant[1]>0 or sd and TransmissionType == 1:
 			gear -= 1
-		
-		
+	
+	
 	if gpedal and shiftdel<0:
 		gas += GasSpeed[1]
 	else:
 		gas -= GasSpeed[0]
-		
+	
 	if bpedal:
 		brake += BrakeSpeed[1]
 	else:
 		brake -= BrakeSpeed[0]
-		
+	
 	if hb:
 		handbrake += HandBrakeSpeed[1]
 	else:
 		handbrake -= HandBrakeSpeed[0]
-		
+	
 	shiftdel -= 1
 		
 	if cpedal or shiftdel>0 and GearAssistant[1]>0 or GearAssistant[1]>0 and rpm<2000:
@@ -459,13 +454,17 @@ func _physics_process(_delta):
 				throttle = IdleThrottle
 	else:
 		throttle = 0.0
-		
-	rpm += resistance/(EngineWeight/1.6)
 	
-	if rpm>EngineFriction/(EngineWeight/1.6):
-		rpm -= EngineFriction/(EngineWeight/1.6)
-	elif rpm<-EngineFriction/(EngineWeight/1.6):
-		rpm += EngineFriction/(EngineWeight/1.6)
+	var engine_weight_mult:float = EngineWeight / 1.6
+	
+	rpm += resistance/engine_weight_mult
+	
+	var engine_friction_weight:float = EngineFriction / (EngineWeight / 1.6)
+	
+	if rpm > engine_friction_weight:
+		rpm -= engine_friction_weight
+	elif rpm < -engine_friction_weight:
+		rpm += engine_friction_weight
 	else:
 		rpm = 0.0
 	
@@ -473,9 +472,9 @@ func _physics_process(_delta):
 	resistance = 0.0
 	resistance2 = 0.0
 	
-	rpm += (((currenttorque*2.0)*throttle)/(EngineWeight/1.6))
-		
-	rpm = rpm/((EngineDrag/(EngineWeight/1.6))/1000.0 +1)
+	rpm += (((currenttorque * 2.0) * throttle) / engine_weight_mult)
+	
+	rpm = rpm / ((EngineDrag / engine_weight_mult) / 1000.0 +1)
 	
 	if NoStall and rpm<100:
 		rpm = 100
@@ -532,11 +531,9 @@ func _physics_process(_delta):
 	pastvelocity = linear_velocity.length()
 	
 	var turbovolume = 0.2
-
-	var dist = blow_psi - psi
-	blow_psi = psi
 	
-	blowvol = clamp(dist, 0.0, 1.0)
+	blowvol = clamp(blow_psi - psi, 0.0, 1.0)
+	blow_psi = psi
 	
 	var spoolvol = clamp(psi/10.0, 0.0, 1.0)
 	
@@ -547,3 +544,11 @@ func _physics_process(_delta):
 	snd_blow.max_db = snd_blow.unit_db
 	snd_spool.max_db = snd_spool.unit_db
 
+
+func aerodynamics() -> void:
+	wind = global_transform.basis.orthonormalized().xform_inv(get_linear_velocity()) / 60.0
+	
+	add_central_force(Vector3(global_transform.basis.orthonormalized().xform(Vector3(-(wind.x * Drag) * 60.0, -wind.z * Downforce -wind.y * Drag, -(wind.z * Drag) * 60.0))))
+
+func sounds() -> void:
+	pass

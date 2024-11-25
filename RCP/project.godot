@@ -13,9 +13,15 @@ _global_script_classes=[ {
 "class": "SeVeCar",
 "language": "GDScript",
 "path": "res://main scripts/car.gd"
+}, {
+"base": "RayCast",
+"class": "SeVeWheel",
+"language": "GDScript",
+"path": "res://main scripts/wheel.gd"
 } ]
 _global_script_class_icons={
-"SeVeCar": ""
+"SeVeCar": "",
+"SeVeWheel": ""
 }
 
 [application]
