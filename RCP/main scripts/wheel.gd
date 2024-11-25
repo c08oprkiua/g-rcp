@@ -71,7 +71,6 @@ var compress2 = 0.0
 var rigidity = 60.0
 var tyrerigidity = 60.0
 
-
 # system
 var forcedata = Vector2(0,0)
 var wv = 0.0
@@ -116,8 +115,17 @@ var currentstiffness = 0.0
 
 var cast_current = 0.0
 
-onready var v1 = get_node("velocity")
-onready var v2 = get_node("velocity2")
+onready var n_velocity:RigidBody = $velocity
+onready var n_velocity2:RigidBody = $velocity2
+onready var n_geometry:MeshInstance = $geometry
+onready var n_geometry_lateral:MeshInstance = $geometry/lateral
+onready var n_geometry_compress:MeshInstance = $geometry/compress
+onready var n_geometry_longi:MeshInstance = $geometry/longi
+onready var n_contact_axis:Position3D = $contact_axis
+onready var n_contact_axis_force:Position3D = $contact_axis/force
+onready var n_axis:Position3D = $axis
+onready var n_animation:Position3D = $animation
+onready var n_animation_spinning:Position3D = $animation/spinning
 
 func alignAxisToVector(xform, norm):
 	xform.basis.y = norm
@@ -131,13 +139,12 @@ func refreshtyres():
 	tyrear = int(tyre_code.substr(9,4))
 	rimsize = int(tyre_code.substr(13,2))
 	tread = tyrear
-
-
+	
 	wheelsize =  (( float(tyrewidth)*((float(tyrear)*2.0)/100.0) + float(rimsize)*25.4 )*0.003269)/4.0
-
+	
 	q = ((wheelsize/((1.0*0.003269)/2.0))*0.003269)/2.0
 	tyrelc = ((wheelsize/((1.0*0.003269)/2.0))*q)/125.0
-
+	
 	lateraldamp = float(tread)*0.0085
 	wheelweight = wheelsize*2.0
 	tyreprofile = float(tread)/10.0
@@ -153,11 +160,11 @@ func refreshtyres():
 
 func _ready():
 	add_exception(get_parent())
-	add_exception(v1)
-	add_exception(v2)
-	get_node("geometry").translation = cast_to
-	v1.global_transform.origin = global_transform.origin
-	v2.global_transform.origin = get_node("geometry").global_transform.origin
+	add_exception(n_velocity)
+	add_exception(n_velocity2)
+	n_geometry.translation = cast_to
+	n_velocity.global_transform.origin = global_transform.origin
+	n_velocity2.global_transform.origin = n_geometry.global_transform.origin
 
 	if WheelScale:
 		wheelsize = WheelScale
@@ -165,31 +172,31 @@ func _ready():
 
 func _physics_process(delta):
 #	print(get_parent().get_node("test").linear_velocity)
-#	print(v1.linear_velocity)
-	get_node("geometry").visible = get_parent().get("visualisation")
+#	print(n_velocity.linear_velocity)
+	n_geometry.visible = get_parent().get("visualisation")
 	get_parent().wheels += 1
-	v2.global_transform.basis = get_node("axis").global_transform.basis
-	v1.global_transform.basis = get_node("axis").global_transform.basis
-	var rayvelocity = v1.global_transform.basis.orthonormalized().xform_inv(v1.get_linear_velocity())
-	var rayvelocity2 = v2.global_transform.basis.orthonormalized().xform_inv(v2.get_linear_velocity())
+	n_velocity2.global_transform.basis = n_axis.global_transform.basis
+	n_velocity.global_transform.basis = n_axis.global_transform.basis
+	var rayvelocity = n_velocity.global_transform.basis.orthonormalized().xform_inv(n_velocity.get_linear_velocity())
+	var rayvelocity2 = n_velocity2.global_transform.basis.orthonormalized().xform_inv(n_velocity2.get_linear_velocity())
 	var rayvelocity2velocity = Vector2(rayvelocity2.x,rayvelocity2.z).length()
+	
+	n_velocity2.global_transform.basis = n_contact_axis.global_transform.basis
+	n_velocity.global_transform.basis = n_contact_axis.global_transform.basis
+	
+	var c_rayvelocity = n_velocity.global_transform.basis.orthonormalized().xform_inv(n_velocity.get_linear_velocity())
+	var c_rayvelocity2 = n_velocity2.global_transform.basis.orthonormalized().xform_inv(n_velocity2.get_linear_velocity())
+	
+	
+	n_geometry.global_transform.basis = n_contact_axis.global_transform.basis
+	n_axis.rotation = Vector3(0,0,0)
+	n_contact_axis.rotation_degrees.x = 0
+	n_contact_axis.rotation_degrees.z = 0
+	n_velocity.linear_velocity = -(n_velocity.global_transform.origin -  global_transform.origin)*rigidity
+	n_velocity2.linear_velocity = -(n_velocity2.global_transform.origin -  n_geometry.global_transform.origin)*tyrerigidity
+	n_contact_axis_force.translation = Vector3(0,0,0)
 
-	v2.global_transform.basis = get_node("contact_axis").global_transform.basis
-	v1.global_transform.basis = get_node("contact_axis").global_transform.basis
-
-	var c_rayvelocity = v1.global_transform.basis.orthonormalized().xform_inv(v1.get_linear_velocity())
-	var c_rayvelocity2 = v2.global_transform.basis.orthonormalized().xform_inv(v2.get_linear_velocity())
-
-
-	get_node("geometry").global_transform.basis = get_node("contact_axis").global_transform.basis
-	get_node("axis").rotation = Vector3(0,0,0)
-	get_node("contact_axis").rotation_degrees.x = 0
-	get_node("contact_axis").rotation_degrees.z = 0
-	v1.linear_velocity = -(v1.global_transform.origin -  global_transform.origin)*rigidity
-	v2.linear_velocity = -(v2.global_transform.origin -  get_node("geometry").global_transform.origin)*tyrerigidity
-	get_node("contact_axis/force").translation = Vector3(0,0,0)
-
-	var rotation_za = get_node("axis").rotation_degrees.z
+	var rotation_za = n_axis.rotation_degrees.z
 	var w = -((dist-StrutOffset)*Suspension_Geometry)/(translation.x/deg2rad(90.0))
 	
 	var mcpherson = w/(abs(w)/90.0 +1)
@@ -199,14 +206,10 @@ func _physics_process(delta):
 	else:
 		currentcamber = -mcpherson + Camber + Caster*get_parent().get("steer")
 
-	get_node("animation").rotation_degrees.z = currentcamber
+	n_animation.rotation_degrees.z = currentcamber
 	
-	var wheelinclinement = rotation_za/90.0 +currentcamber/90.0
-	if wheelinclinement>0.25:
-		wheelinclinement = 0.25
-	elif wheelinclinement<-0.25:
-		wheelinclinement = -0.25
-		
+	var wheelinclinement = clamp(rotation_za/90.0 +currentcamber/90.0, -0.25, 0.25)
+	
 	wheelangle = abs((wheelinclinement -scrub/90.0)/(tyreprofile/10.0))
 	
 	if wheelangle>1.0:
@@ -220,11 +223,11 @@ func _physics_process(delta):
 		st = get_parent().get("steer")*SteerAngle_Left
 	else:
 		st = get_parent().get("steer")*SteerAngle_Right
-		
+	
 	var toe = Toe
 	if translation.x<0:
 		toe = -toe
-		
+	
 	rotation_degrees.y = st -toe
 
 	# differential
@@ -266,9 +269,9 @@ func _physics_process(delta):
 	if is_colliding():
 
 		#suspension
-		get_node("geometry").global_transform.origin = get_collision_point()
-		get_node("axis").global_transform = alignAxisToVector(get_node("axis").global_transform,get_collision_normal())
-		get_node("contact_axis").global_transform = alignAxisToVector(get_node("contact_axis").global_transform,get_collision_normal())
+		n_geometry.global_transform.origin = get_collision_point()
+		n_axis.global_transform = alignAxisToVector(n_axis.global_transform,get_collision_normal())
+		n_contact_axis.global_transform = alignAxisToVector(n_contact_axis.global_transform,get_collision_normal())
 
 		bumpfrequency = 0.0
 		bumpy = 0.0
@@ -294,7 +297,7 @@ func _physics_process(delta):
 		elif bumpycurrent>bumpy:
 			bumpinverted = true
 			bumpycurrent = bumpy
-					
+		
 		get_parent().cgroundmaterial += cgroundmaterial
 
 		cast_current = cast_to.y +bumpycurrent
@@ -303,18 +306,18 @@ func _physics_process(delta):
 		if scvelo>0.0:
 			scvelo *= damp
 
-		compress2 = (get_node("geometry").translation.y-cast_current -Rest)*currentelast
+		compress2 = (n_geometry.translation.y-cast_current -Rest)*currentelast
 #		compress2 *= 1.0
 		if compress2<0:
 			compress2 = 0
-			
-		if (get_node("geometry").translation.y-cast_current)>Rest :
+		
+		if (n_geometry.translation.y-cast_current)>Rest :
 			compress = (scvelo - compress2)*currentstif
 		if compress>0:
 			compress = 0
 			
 		wheelcompression = -compress
-		get_node("contact_axis/force").translation.y = -compress
+		n_contact_axis_force.translation.y = -compress
 		
 		tyrecompressed = (((wheelcompression)/1000.0)*tyrecompressrate)*(-(wheelangle)+1)
 		tyrecompressed *= 1.0 -wheelangle
@@ -379,11 +382,9 @@ func _physics_process(delta):
 		
 		# idfk
 		var limt = coefficiency*(currentgrip/1000.0)
-		if contactforce>limt:
-			contactforce = limt
-		elif contactforce<-limt:
-			contactforce = -limt
-			
+		contactforce = clamp(contactforce, -limt, limt)
+		
+		
 		if contactforce>0.0:
 			contactforce += brakeforce
 			if contactforce<0.0:
@@ -397,16 +398,11 @@ func _physics_process(delta):
 
 		patch.x += c_rayvelocity2.x/5.0
 		var maxtravel = currentgrip/1000.0
-		if patch.x>maxtravel:
-			 patch.x = maxtravel
-		elif patch.x<-maxtravel:
-			 patch.x = -maxtravel
-			
+		patch.x = clamp(patch.x, -maxtravel, maxtravel)
+		
+		
 		patch.y += (c_rayvelocity2.z - (wv*wheelsize))/5.0
-		if patch.y>maxtravel:
-			 patch.y = maxtravel
-		elif patch.y<-maxtravel:
-			 patch.y = -maxtravel
+		patch.y = clamp(patch.y, -maxtravel, maxtravel)
 		
 		patch /= abs(wv)/10.0 +1.0
 
@@ -428,23 +424,14 @@ func _physics_process(delta):
 		var slip = abs(distz) + abs(distx)
 #		slipz = max(abs(distx),abs(distz))
 		slipz = abs(distx*2.5) + abs(distz)
-		var longimode = rayvelocity2velocity - abs(wv)*wheelsize -currentgrip/1000.0
-		if longimode<0:
-			longimode = 0
-		elif longimode>1:
-			longimode = 1
+		var longimode = clamp(rayvelocity2velocity - abs(wv)*wheelsize -currentgrip/1000.0, 0.0, 1.0)
 		
-		var rolldirt = abs(wv)
-		if rolldirt>10.0:
-			rolldirt = 10.0
+		var rolldirt = min(abs(wv), 10.0)
 		
-		var the_yes = (abs(distz) + abs(distx))*2.5 + rolldirt
-		if the_yes>100.0:
-			the_yes = 100.0
+		var the_yes = min((abs(distz) + abs(distx))*2.5 + rolldirt, 100.0)
 		
 		get_parent().wheelsforce += the_yes
-
-
+		
 		#----------
 		
 		#forces
@@ -483,7 +470,7 @@ func _physics_process(delta):
 				offsettedz = unitc/wheelweight
 			if offsettedx<unitd/wheelweight:
 				offsettedx = unitd/wheelweight
-				
+			
 			w = (tyrecompressed/contact)*2.0
 			var ok = ((tyrecompressed*w)/contact)*2.0
 			
@@ -495,18 +482,12 @@ func _physics_process(delta):
 			skidspin = brokencontactspin
 			skid = brokencontact
 			skid2 = Vector2(abs(distz3),abs(distx)).length()
-
-			if brokencontact<0.0:
-				brokencontact = 0.0
-			elif brokencontact>1.0:
-				brokencontact = 1.0
-			if brokencontactspin<0.0:
-				brokencontactspin = 0.0
-			elif brokencontactspin>1.0:
-				brokencontactspin = 1.0
-
-			var patchdistancefromcenter = (get_node("geometry").global_transform.origin - get_parent().global_transform.origin).length()
-
+			
+			brokencontact = clamp(brokencontact, 0.0, 1.0)
+			brokencontactspin = clamp(brokencontactspin, 0.0, 1.0)
+			
+			var patchdistancefromcenter = (n_geometry.global_transform.origin - get_parent().global_transform.origin).length()
+			
 			var farx = distx*patchdistancefromcenter
 			var farz = distz*patchdistancefromcenter
 			farx /= tyrecompressed+1.0
@@ -515,38 +496,25 @@ func _physics_process(delta):
 				farx *= -1.0
 			if translation.z>0:
 				farz *= -1.0
-
-			wsing = farz/2.5 -abs(farx)*0.1
-						
-			if wsing<0.0:
-				wsing = 0.0
-			elif wsing>0.75/(cgroundmaterial +1.0):
-				wsing = 0.75/(cgroundmaterial +1.0)
-				
+			
+			wsing = clamp(farz/2.5 -abs(farx)*0.1, 0.0, 0.75/(cgroundmaterial +1.0))
+			
 #			wsing = 0.0
 				
 #			print(wsing)
 			var going = rayvelocity2velocity
-				
-			going /= wheelsize*100.0
-						
-			going -= 0.25
-			var going2 = going*2.0
-			if going2<0.0:
-				 going2 = 0.0
-			elif going2>1.0:
-				 going2 = 1.0
 			
+			going /= wheelsize*100.0
+			
+			going -= 0.25
+			var going2 = clamp(going*2.0, 0.0, 1.0)
 			
 			if going<1.0-(wsing/0.75):
 				 going = 1.0-(wsing/0.75)
-			if going<0.0:
-				 going = 0.0
-			elif going>1.0-wsing:
-				 going = 1.0-wsing
-				
+			going = clamp(going, 0.0, 1.0-wsing)
+			
 #			going = 1.0
-				
+			
 #			wsing = 1.0
 
 			var siding = abs(c_rayvelocity2.x/(rayvelocity2velocity +1.0))
@@ -565,7 +533,7 @@ func _physics_process(delta):
 			var declinet3 = going - siding*1.0
 			if declinet3<0.0:
 				declinet3 = 0.0
-				
+			
 #			var AAAA = distz3*(1.0-wsing) + distz4*wsing
 
 			var dapedz = abs(distz4*(1.0-declinet2) +distz3*declinet2)*1.0 -(offsettedz*declinet3)*(1.0-declinet +wsing)
@@ -607,38 +575,29 @@ func _physics_process(delta):
 			amountzw = distzw/(dampw/offsettedzw +1.0) /offsettedzw
 			amountx = distx/(dampx/offsettedx +1.0) /offsettedx
 			forcedata = [abs(distx),abs(distz)]
-			get_node("contact_axis").rotation_degrees.y = 0
+			n_contact_axis.rotation_degrees.y = 0
 
 		var longitudinal = amountz*(currentgrip*2.0)
 		var longitudinalw = amountzw*(currentgrip*2.0)
 		var lateral = amountx*(currentgrip*2.0)
 		var lateralscrub = rayvelocity2.x*(gripscrub*2.0)
 		
-		get_node("contact_axis/force").translation.x = -lateral/2.0
-		get_node("contact_axis/force").translation.z = -longitudinal/2.0
+		n_contact_axis_force.translation.x = -lateral/2.0
+		n_contact_axis_force.translation.z = -longitudinal/2.0
 		
-		scrub = lateralscrub/(float(tyrewidth)*180.0)
-		if scrub<-90.0:
-			scrub = -90.0
-		elif scrub>90.0:
-			scrub = 90.0
+		scrub = clamp(lateralscrub/(float(tyrewidth)*180.0), -90.0, 90.0)
 		
 		scrub /= (abs(scrub)*deg2rad(1.0) ) +1
 		
-		var wvok = abs(wv)/10.0
-		if wvok>1.0:
-			wvok = 1.0
+		var wvok = min(abs(wv)/10.0, 1.0)
 		
 		scrub *= wvok
-
+		
 		wv += (longitudinalw/wheelweight)/50.0
 		#------
-
-		var h = skid*0.5 -abs(wv)*(lateraldamp/10.0) - 0.75
-		if h>1:
-			h = 1
-		elif h<0:
-			h = 0
+		
+		var h = clamp(skid*0.5 -abs(wv)*(lateraldamp/10.0) - 0.75, 0.0, 1.0)
+		
 		get_parent().set("skidding",get_parent().get("skidding")+h)
 
 		var h2 = skid2
@@ -647,29 +606,29 @@ func _physics_process(delta):
 		get_parent().set("skidding2",get_parent().get("skidding2")+h2)
 
 		#debug
-		get_node("geometry/compress").scale = Vector3(0.01,tyrecompressed/0.25,0.01)
-		get_node("geometry/compress").translation.y = get_node("geometry/compress").scale.y/2
-		get_node("geometry/longi").scale = Vector3(0.01,0.01,get_node("contact_axis/force").translation.z/500.0)
-		get_node("geometry/longi").translation.z = get_node("geometry/longi").scale.z/2.0
-		get_node("geometry/lateral").scale = Vector3(get_node("contact_axis/force").translation.x/500.0,0.01,0.01)
-		get_node("geometry/lateral").translation.x = get_node("geometry/lateral").scale.x/2.0
+		n_geometry_compress.scale = Vector3(0.01,tyrecompressed/0.25,0.01)
+		n_geometry_compress.translation.y = n_geometry_compress.scale.y/2
+		n_geometry_longi.scale = Vector3(0.01,0.01,n_contact_axis_force.translation.z/500.0)
+		n_geometry_longi.translation.z = n_geometry_longi.scale.z/2.0
+		n_geometry_lateral.scale = Vector3(n_contact_axis_force.translation.x/500.0,0.01,0.01)
+		n_geometry_lateral.translation.x = n_geometry_lateral.scale.x/2.0
 		
-		get_node("geometry/compress").translation.y -= wheelsize/2.0
-		get_node("geometry/lateral").translation.y = -wheelsize/2.0
-		get_node("geometry/longi").translation.y = -wheelsize/2.0
+		n_geometry_compress.translation.y -= wheelsize/2.0
+		n_geometry_lateral.translation.y = -wheelsize/2.0
+		n_geometry_longi.translation.y = -wheelsize/2.0
 
 	else:
 		cast_current = cast_to.y
 		wheelcompression = 0.0
 		tyrecompressed = 0.0
-		get_node("geometry").translation = cast_to
-		get_node("contact_axis").rotation_degrees.y = 0
+		n_geometry.translation = cast_to
+		n_contact_axis.rotation_degrees.y = 0
 
-	dist = abs(cast_current-get_node("geometry").translation.y)
+	dist = abs(cast_current-n_geometry.translation.y)
 
-	get_node("geometry/compress").visible = is_colliding()
-	get_node("geometry/lateral").visible = is_colliding()
-	get_node("geometry/longi").visible = is_colliding()
+	n_geometry_compress.visible = is_colliding()
+	n_geometry_lateral.visible = is_colliding()
+	n_geometry_longi.visible = is_colliding()
 	
 	if not SwayBar_Connection == "":
 		var linkedwheel = get_parent().get_node(SwayBar_Connection)
@@ -682,12 +641,12 @@ func _physics_process(delta):
 		currentelast = elasticity
 		currentstif = stiffness
 
-	get_node("geometry").translation.y += wheelsize -(tyrecompressed*0.0025)
+	n_geometry.translation.y += wheelsize -(tyrecompressed*0.0025)
 	
 	if translation.x>0:
-		get_node("geometry").translation.x += Offset
+		n_geometry.translation.x += Offset
 	else:
-		get_node("geometry").translation.x -= Offset
+		n_geometry.translation.x -= Offset
 	
 	#wv manipulation
 	contactforce = 0.0
@@ -830,11 +789,11 @@ func _physics_process(delta):
 		
 	var weight = get_parent().mass
 
-	get_parent().apply_impulse((get_node("geometry").global_transform.origin-get_parent().global_transform.origin)*1.0,(get_node("contact_axis/force").global_transform.origin-global_transform.origin)/weight)
+	get_parent().apply_impulse((n_geometry.global_transform.origin-get_parent().global_transform.origin)*1.0,(n_contact_axis_force.global_transform.origin-global_transform.origin)/weight)
 
 	# animations
-	get_node("animation").global_transform.origin = get_node("geometry").global_transform.origin
-#	get_node("animation").global_transform.origin = orgin
-	get_node("animation").translation.y += cast_to.y-cast_current
-	get_node("animation/spinning").rotation_degrees.x += wv
+	n_animation.global_transform.origin = n_geometry.global_transform.origin
+#	n_animation.global_transform.origin = orgin
+	n_animation.translation.y += cast_to.y-cast_current
+	n_animation_spinning.rotation_degrees.x += wv
 	

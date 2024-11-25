@@ -208,62 +208,59 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="container" type="VBoxContainer" parent="debug"]
+[node name="monitors" type="VBoxContainer" parent="debug"]
 anchor_right = 1.0
 anchor_bottom = 1.0
-__meta__ = {
-"_edit_use_anchors_": false
-}
 
-[node name="fps" type="Label" parent="debug/container"]
+[node name="fps" type="Label" parent="debug/monitors"]
 margin_right = 1024.0
 margin_bottom = 37.0
 custom_fonts/font = SubResource( 1 )
 text = "debug"
 
-[node name="important" type="Label" parent="debug/container"]
+[node name="rpm" type="Label" parent="debug/monitors"]
 margin_top = 41.0
 margin_right = 1024.0
 margin_bottom = 78.0
 custom_fonts/font = SubResource( 1 )
 text = "debug"
 
-[node name="important5" type="Label" parent="debug/container"]
+[node name="rpm_speed" type="Label" parent="debug/monitors"]
 margin_top = 82.0
 margin_right = 1024.0
 margin_bottom = 119.0
 custom_fonts/font = SubResource( 1 )
 text = "debug"
 
-[node name="important6" type="Label" parent="debug/container"]
+[node name="force" type="Label" parent="debug/monitors"]
 margin_top = 123.0
 margin_right = 1024.0
 margin_bottom = 160.0
 custom_fonts/font = SubResource( 1 )
 text = "debug"
 
-[node name="important2" type="Label" parent="debug/container"]
+[node name="gear" type="Label" parent="debug/monitors"]
 margin_top = 164.0
 margin_right = 1024.0
 margin_bottom = 201.0
 custom_fonts/font = SubResource( 1 )
 text = "debug"
 
-[node name="important3" type="Label" parent="debug/container"]
+[node name="kph" type="Label" parent="debug/monitors"]
 margin_top = 205.0
 margin_right = 1024.0
 margin_bottom = 242.0
 custom_fonts/font = SubResource( 1 )
 text = "debug"
 
-[node name="important4" type="Label" parent="debug/container"]
+[node name="torque" type="Label" parent="debug/monitors"]
 margin_top = 246.0
 margin_right = 1024.0
 margin_bottom = 283.0
 custom_fonts/font = SubResource( 1 )
 text = "debug"
 
-[node name="important7" type="Label" parent="debug/container"]
+[node name="turbo_psi" type="Label" parent="debug/monitors"]
 margin_top = 287.0
 margin_right = 1024.0
 margin_bottom = 324.0
@@ -282,24 +279,12 @@ margin_bottom = -22.0
 rect_pivot_offset = Vector2( 64, 64 )
 texture = ExtResource( 5 )
 expand = true
-__meta__ = {
-"_edit_use_anchors_": false
-}
 
 [node name="maps" type="Spatial" parent="."]
 
 [node name="test track" type="MeshInstance" parent="maps"]
 transform = Transform( -1, 6.1849e-24, 1.99698e-13, 7.09656e-21, 1, 7.10246e-17, -1.99698e-13, 7.10246e-17, -1, 2.85717e-20, 1.91069e-13, 3.2685e-13 )
 mesh = SubResource( 11 )
-material/0 = null
-material/1 = null
-material/2 = null
-material/3 = null
-material/4 = null
-material/5 = null
-material/6 = null
-material/7 = null
-material/8 = null
 
 [node name="StaticBody" type="StaticBody" parent="maps/test track"]
 script = ExtResource( 19 )

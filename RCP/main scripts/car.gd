@@ -1,106 +1,114 @@
 extends RigidBody
 
+class_name SeVeCar
+
 #AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 var TorqueScale = 0.75 # keep it this way
 
 #gameplay
-var UseMouseSteering = false # Use Mouse Steering
-var SteeringAssistance = 1.0 # Auto Counter-Steer Rate
-var SteeringAssistanceAngular = 0.2 # Auto Counter-Steer Rate (AngularVelocity-based)
-var MouseSteerDeadzone = 0.0 # Mouse Steer Deadzone
-var MouseSteerSensitivity = 1.0 # Mouse Steer Sensitivity
-var MouseSteeringLinearity = 100.0 # Mouse Steer Linearity
-var KeyboardSteerSpeed = 0.03 # Steering Rate
-var KeyboardReturnSpeed = 0.05 # Steering Return Rate
-var KeyboardSteerDecay = 0.025 # Steering rate decaying under car's velocity
-var KeyboardReturnDecay = 0.025 # Steering return rate decaying under car's velocity
-var KeyboardSteerAmountDecay = 0.075 # Understeer Prevention
-var NoStall = false # Prevents engine from going under 100 RPM
-var GearAssistant = [20,2,0.944087,6000,5500] # Shift delay | Level (0 - 2) | Speed Influence (will be automatically set) | Downshift RPM Influence | Upshift RPM Influence
+export var UseMouseSteering = false # Use Mouse Steering
+export var SteeringAssistance = 1.0 # Auto Counter-Steer Rate
+export var SteeringAssistanceAngular = 0.2 # Auto Counter-Steer Rate (AngularVelocity-based)
+export var MouseSteerDeadzone = 0.0 # Mouse Steer Deadzone
+export var MouseSteerSensitivity = 1.0 # Mouse Steer Sensitivity
+export var MouseSteeringLinearity = 100.0 # Mouse Steer Linearity
+export var KeyboardSteerSpeed = 0.03 # Steering Rate
+export var KeyboardReturnSpeed = 0.05 # Steering Return Rate
+export var KeyboardSteerDecay = 0.025 # Steering rate decaying under car's velocity
+export var KeyboardReturnDecay = 0.025 # Steering return rate decaying under car's velocity
+export var KeyboardSteerAmountDecay = 0.075 # Understeer Prevention
+export var NoStall = false # Prevents engine from going under 100 RPM
+export var GearAssistant = [20,2,0.944087,6000,5500] # Shift delay | Level (0 - 2) | Speed Influence (will be automatically set) | Downshift RPM Influence | Upshift RPM Influence
 
-var GasSpeed = [0.25,0.25] # Release, Press
-var BrakeSpeed = [0.1,0.05] # Release, Press
-var HandBrakeSpeed = [0.25,0.25] # Release, Press
-var ClutchSpeed = [0.25,0.25] # Release, Press
+export var GasSpeed = [0.25,0.25] # Release, Press
+export var BrakeSpeed = [0.1,0.05] # Release, Press
+export var HandBrakeSpeed = [0.25,0.25] # Release, Press
+export var ClutchSpeed = [0.25,0.25] # Release, Press
 
 #stability
-var ABS = [0.04, 0.0, 5.0, 0.7, 1, 1] # Sensitivity | Sensitivity Threshold | Disable Speed | Threshold Brake | Enabled | Low-Tech Enabled (all first 3 items ignored)
+export var ABS:PoolRealArray = [0.04, 0.0, 5.0, 0.7, 1, 1] # Sensitivity | Sensitivity Threshold | Disable Speed | Threshold Brake | Enabled | Low-Tech Enabled (all first 3 items ignored)
 
 #experimental
-var ESP = [1, 0.5, 0] # Sensitivity | Threshold | Enabled
-var TCS = [0.05, 0.5, 0] # Sensitivity | Threshold | Enabled
+export var ESP = [1, 0.5, 0] # Sensitivity | Threshold | Enabled
+export var TCS = [0.05, 0.5, 0] # Sensitivity | Threshold | Enabled
 
 #TUNING
 
 #transmission
-var TransmissionType = 0 # 0 = Full Manual, 1 = Sequential
-var ClutchGrip = 0.75 # Grip between the engine and the driveshaft.
-var FinalDriveRatio = 4.25
-var GearRatios = [ 3.250, 1.894, 1.259, 0.937, 0.771 ] # Add an extra item to extend gears.
-var ReverseRatio = 3.153
-var RatioMult = 9.5 # FinalDriveRatio multiplier to find accuracy.
-var ShiftClutchOff = 0.75
+export var TransmissionType = 0 # 0 = Full Manual, 1 = Sequential
+export var ClutchGrip = 0.75 # Grip between the engine and the driveshaft.
+export var FinalDriveRatio = 4.25
+export var GearRatios = [ 3.250, 1.894, 1.259, 0.937, 0.771 ] # Add an extra item to extend gears.
+export var ReverseRatio = 3.153
+export var RatioMult = 9.5 # FinalDriveRatio multiplier to find accuracy.
+export var ShiftClutchOff = 0.75
 
 #power-to-wheel
-var PowerToWheel = 0.9 # Amount of torque being sent to the wheels upon higher gear ratio. (Keep untouched recommended)
-var DriveShaftGrip = 0.75 # Grip between the wheels and the driveshaft. (Must be matched to ClutchGrip in most cases)
-var BiteStrength = 3.0 # i forgor
+export var PowerToWheel = 0.9 # Amount of torque being sent to the wheels upon higher gear ratio. (Keep untouched recommended)
+export var DriveShaftGrip = 0.75 # Grip between the wheels and the driveshaft. (Must be matched to ClutchGrip in most cases)
+export var BiteStrength = 3.0 # i forgor
 
 # Needed to keep the powertrain from spazzing. But could sometimes be pretty messy to find balance between horrible sense of acceleration and instability.
-var ClutchStability = 0.5
-var StabilityThreshold = 150.0
-var StabiliseGears = 0.15
+export var ClutchStability = 0.5
+export var StabilityThreshold = 150.0
+export var StabiliseGears = 0.15
 
 #diff (EXPERIMENTAL)
-var Locking = 8.0
-var Preload = 0.1
-var CoastPreload = 0.0
+export var Locking = 8.0
+export var Preload = 0.1
+export var CoastPreload = 0.0
 
 #engine
-var EngineWeight = 1.6 # Higher weight makes it more invulnerable to resistable forces but responds slowly.
-var MaxTorque = 10000.0 # Amount of torque can recieve before valve-float occurs.
-var TorqueDecline = 1.0 # Probability of valve-floating.
-var PotentialTorque = 0.049 # Basically a multiplier of the two above.
-var StartingTorque = 40.0 # Adds up extra torque to compensate at low RPMs.
-var CrossPoint = 5252.0 # Higher numbers makes the horsepower graph rise earlier. (just for measurements)
-var EngineFriction = 1.0 # Decreases rev.
-var EngineDrag = 5.0 # Decreases rev as it gets higher.
-var ThrottleResponse = 0.5 # Fuel injection rate. (range: 0-1)
-var RPMLimit = 7000.0
-var IdleRPM = 800.0
-var IdleThrottle = 0.1 # Throttle on idle RPM
+export var EngineWeight = 1.6 # Higher weight makes it more invulnerable to resistable forces but responds slowly.
+export var MaxTorque = 10000.0 # Amount of torque can recieve before valve-float occurs.
+export var TorqueDecline = 1.0 # Probability of valve-floating.
+export var PotentialTorque = 0.049 # Basically a multiplier of the two above.
+export var StartingTorque = 40.0 # Adds up extra torque to compensate at low RPMs.
+export var CrossPoint = 5252.0 # Higher numbers makes the horsepower graph rise earlier. (just for measurements)
+export var EngineFriction = 1.0 # Decreases rev.
+export var EngineDrag = 5.0 # Decreases rev as it gets higher.
+export var ThrottleResponse = 0.5 # Fuel injection rate. (range: 0-1)
+export var RPMLimit = 7000.0
+export var IdleRPM = 800.0
+export var IdleThrottle = 0.1 # Throttle on idle RPM
 
-var RevBouncing = true # Enable realistic rev limiter
-var RevLimiterDelay = 5.0 # Redline bounce duration (Set to 0 to rev beyond RPM limit)
+export var RevBouncing = true # Enable realistic rev limiter
+export var RevLimiterDelay = 5.0 # Redline bounce duration (Set to 0 to rev beyond RPM limit)
 
-var LaunchRPM = 0.0 # Set to 0 to disable.
+export var LaunchRPM = 0.0 # Set to 0 to disable.
 
 #turbo
-var TurboInstalled = false # Enables turbo
-var TurboAmount = 1 # Turbo power multiplication.
-var MaxPSI = 8.0 # Maximum air generated by the turbo
-var EngineCompressionRatio = 9.0 # Piston travel distance
-var TurboSize = 8.0 # Higher = More turbo lag
-var Compressor = 0.14 # Higher = Allows more spooling on low RPM
-var SpoolThreshold = 0.1 # Range: 0 - 0.9999
-var BlowoffRate = 0.14 # Range: 0 - 1
-var TurboEfficiency = 0.06 # Range: 0 - 1
-var TurboVacuum = 1.0 # Torque deficiency upon idling turbo
+export var TurboInstalled = false # Enables turbo
+export var TurboAmount = 1 # Turbo power multiplication.
+export var MaxPSI = 8.0 # Maximum air generated by the turbo
+export var EngineCompressionRatio = 9.0 # Piston travel distance
+export var TurboSize = 8.0 # Higher = More turbo lag
+export var Compressor = 0.14 # Higher = Allows more spooling on low RPM
+export var SpoolThreshold = 0.1 # Range: 0 - 0.9999
+export var BlowoffRate = 0.14 # Range: 0 - 1
+export var TurboEfficiency = 0.06 # Range: 0 - 1
+export var TurboVacuum = 1.0 # Torque deficiency upon idling turbo
 
-var BackfireRate = 3.0
-var BackfireThreshold = 0.9
+export var BackfireRate = 3.0
+export var BackfireThreshold = 0.9
 
 #chassis
-var BrakeStrength = 100.0
+export var BrakeStrength = 100.0
 
 #aero
-var Drag = 3.0/2.0
-var Downforce = 1.0
-var Pitching = -0.05
-var Tilting = 0.0
-var Yawing = 0.0
+export var Drag = 3.0/2.0
+export var Downforce = 1.0
+export var Pitching = -0.05
+export var Tilting = 0.0
+export var Yawing = 0.0
 
 #----
+
+onready var snd_spool:AudioStreamPlayer3D = $spool
+onready var snd_blow:AudioStreamPlayer3D = $blow
+onready var snd_skid:AudioStreamPlayer3D = $skid
+onready var snd_dirt:AudioStreamPlayer3D = $dirt
+onready var snd_engine:AudioStreamPlayer3D = $engine
 
 #system
 var visualisation = false
@@ -253,7 +261,7 @@ func _ready():
 	#----------
 
 
-func _physics_process(delta):
+func _physics_process(_delta):
 	var mouseposx = get_viewport().get_mouse_position().x/get_viewport().size.x
 
 	var assist = -(global_transform.basis.orthonormalized().xform_inv(linear_velocity).x/(linear_velocity.length() +1))*SteeringAssistance
@@ -263,10 +271,7 @@ func _physics_process(delta):
 	sleft = Input.is_action_pressed("left")
 	
 	if Input.is_action_just_pressed("toggle_visualisation"):
-		if not visualisation:
-			visualisation = true
-		else:
-			visualisation = false
+		visualisation = not visualisation
 	
 	var siding = abs(global_transform.basis.orthonormalized().xform_inv(linear_velocity).x)
 	var going = global_transform.basis.orthonormalized().xform_inv(linear_velocity).z/(siding +1)
@@ -291,72 +296,52 @@ func _physics_process(delta):
 			steer2 = 0
 		
 	var maxsteer = 1/(going*KeyboardSteerAmountDecay +1)
-		
-	if steer2>maxsteer:
-		steer2 = maxsteer
-	elif steer2<-maxsteer:
-		steer2 = -maxsteer
-		
+	
+	steer2 = clamp(steer2, -maxsteer, maxsteer)
+	
 	steer = steer2 -assist
-		
+	
 	if UseMouseSteering:            
 		var stinfluence = (mouseposx-0.5)*(MouseSteerSensitivity*2)
 		if stinfluence<0:
 			stinfluence = -stinfluence
-			
-		stinfluence = stinfluence*MouseSteeringLinearity
-			
-		if stinfluence>1:
-			stinfluence = 1
-			   
+		
+		stinfluence = min(stinfluence*MouseSteeringLinearity, 1.0)
+		  
 		steer = -((mouseposx-0.5)*stinfluence)*(MouseSteerSensitivity*2)  -assist
-		
-
-		
-	if steer>1.0:
-		steer = 1.0
-	elif steer<-1.0:
-		steer = -1.0
-		
-	var ptorque = PotentialTorque
-	var storque = StartingTorque
-
+	
+	steer = clamp(steer, -1.0, 1.0)
+	
 	#aerodynamics
 	wind = global_transform.basis.orthonormalized().xform_inv(get_linear_velocity())/60.0
 	
 	add_central_force(Vector3(global_transform.basis.orthonormalized().xform(Vector3(-(wind.x*Drag)*60.0,-wind.z*Downforce -wind.y*Drag,-(wind.z*Drag)*60.0))))
 	
-	currenttorque = (rpm - (rpm*(rpm*TorqueDecline))/MaxTorque)*ptorque +storque
+	currenttorque = (rpm - (rpm * (rpm * TorqueDecline)) / MaxTorque) * PotentialTorque + StartingTorque
 	if currenttorque<0.0:
 		currenttorque = 0.0
 	
 	if TurboInstalled:
-		var yes = (pastpsi - psi)*BackfireRate
+		var yes = clamp((pastpsi - psi) * BackfireRate, 0.0, 1.0)
 		pastpsi = psi
-		if yes>1.0:
-			yes = 1.0
-		elif yes<0.0:
-			yes = 0.0
+		
 		var radomed = rand_range(0.0,yes)
 		if radomed>BackfireThreshold:
 			backfiretriggered = true
-			
+		
 		var thr = (throttle-SpoolThreshold)/(1.0-SpoolThreshold)
 		
 		if boosting>thr:
 			boosting = thr
 		else:
 			boosting -= (boosting - thr)*TurboEfficiency
-			
+		
 		psi += (boosting*rpm)/((TurboSize/Compressor)*60.9)
 		psi -= psi*BlowoffRate
-		if psi>MaxPSI:
-			psi = MaxPSI
-		elif psi<-TurboVacuum:
-			psi = -TurboVacuum
-			
-		currenttorque += ( (psi*TurboAmount) * (EngineCompressionRatio*0.609))
+		psi = clamp(psi, -TurboVacuum, MaxPSI)
 		
+		currenttorque += ( (psi*TurboAmount) * (EngineCompressionRatio*0.609))
+	
 	tq = (currenttorque -rpm*(EngineDrag/1000.0) -EngineFriction)*TorqueScale
 	hp = (rpm/CrossPoint)*tq
 	
@@ -364,7 +349,7 @@ func _physics_process(delta):
 		ratio = (GearRatios[gear-1]*FinalDriveRatio)*RatioMult
 	else:
 		ratio = -(ReverseRatio*FinalDriveRatio)*RatioMult
-		
+	
 	var ra = abs(ratio)
 	
 	var assistshiftspeed = (GearAssistant[3]/ra)*GearAssistant[2]
@@ -400,7 +385,7 @@ func _physics_process(delta):
 		bpedal = Input.is_action_pressed("brake")
 		cpedal = Input.is_action_pressed("clutch")
 		hb = Input.is_action_pressed("handbrake")
-		
+	
 	if GearAssistant[1] == 2:
 		if gpedal and gear == 0:
 			gear = 1
@@ -414,13 +399,13 @@ func _physics_process(delta):
 				su = true
 			elif linear_velocity.length()<assistdownshiftspeed/2.0 and gear>1:
 				sd = true
-			
+		
 		if gear == -1:
 			var interferance = gpedal
 			gpedal = bpedal
 			bpedal = interferance
-			
-			
+		
+		
 	if gear<len(GearRatios):
 		if su and clutchon<ShiftClutchOff or su and GearAssistant[1]>0 or su and TransmissionType == 1:
 			if GearAssistant[1]>0 and not gear<1:
@@ -452,27 +437,15 @@ func _physics_process(delta):
 		clutchon -= ClutchSpeed[1]
 	else:
 		clutchon += ClutchSpeed[0]
-		
-	if gas<0.0:
-		gas = 0.0
-	elif gas>1.0:
-		gas = 1.0
-	if brake<0.0:
-		brake = 0.0
-	elif brake>1.0:
-		brake = 1.0
-	if handbrake<0.0:
-		handbrake = 0.0
-	elif handbrake>1.0:
-		handbrake = 1.0
-	if clutchon<0.0:
-		clutchon = 0.0
-	elif clutchon>1.0:
-		clutchon = 1.0
-		
+	
+	gas = clamp(gas, 0.0, 1.0)
+	brake = clamp(brake, 0.0, 1.0)
+	handbrake = clamp(handbrake, 0.0, 1.0)
+	clutchon = clamp(clutchon, 0.0, 1.0)
+	
 	if rpm>RPMLimit and RevBouncing or rpm>LaunchRPM and not LaunchRPM == 0.0 and gear == 0:
 		limitdel = RevLimiterDelay
-		
+	
 	limitdel -= 1
 	
 	if limitdel<0:
@@ -488,63 +461,56 @@ func _physics_process(delta):
 		throttle = 0.0
 		
 	rpm += resistance/(EngineWeight/1.6)
-
+	
 	if rpm>EngineFriction/(EngineWeight/1.6):
 		rpm -= EngineFriction/(EngineWeight/1.6)
 	elif rpm<-EngineFriction/(EngineWeight/1.6):
 		rpm += EngineFriction/(EngineWeight/1.6)
 	else:
 		rpm = 0.0
-
+	
 	speedrpm += resistance2
 	resistance = 0.0
 	resistance2 = 0.0
-
+	
 	rpm += (((currenttorque*2.0)*throttle)/(EngineWeight/1.6))
 		
 	rpm = rpm/((EngineDrag/(EngineWeight/1.6))/1000.0 +1)
-
+	
 	if NoStall and rpm<100:
 		rpm = 100
 	if rpm>RPMLimit and not RevBouncing:
 		rpm = RPMLimit
-		
+	
 	dsweightrun = dsweight
-		
+	
 #	print(dsweightrun)
-
-
+	
 	dsweight = 0.0
-			
+	
 	#misc
 	var soundvolume = 1.0
 	
-	get_node("engine").pitch_scale = abs(rpm)/5430.0
-	get_node("engine").unit_db = linear2db((throttle*0.5 +0.5)*soundvolume)
-	get_node("engine").max_db = get_node("engine").unit_db
+	snd_engine.pitch_scale = abs(rpm)/5430.0
+	snd_engine.unit_db = linear2db((throttle*0.5 +0.5)*soundvolume)
+	snd_engine.max_db = snd_engine.unit_db
 	
-	var skikd = skidding2/25.0 -0.5
-	if skikd<0.0:
-		skikd = 0.0
-	elif skikd>1.0:
-		skikd = 1.0
-			
+	var skikd = clamp(skidding2/25.0 -0.5, 0.0, 1.0)
+	
 	if wheelsonground>0:
 		cgroundmaterial /= float(wheelsonground)
-		wheelsforce /= float(wheelsonground)
-
-		if wheelsforce>100.0:
-			wheelsforce = 100.0
-		get_node("skid").pitch_scale = 0.7 +skikd*0.25
-		get_node("skid").unit_db = linear2db(((skikd/1.5)*(1.0-cgroundmaterial))*soundvolume)
-		get_node("dirt").unit_db = linear2db(((wheelsforce/100.0)*cgroundmaterial)*soundvolume)
-		get_node("dirt").pitch_scale = 1.0 +wheelsforce/100.0
+		wheelsforce = min(wheelsforce / float(wheelsonground), 100.0)
+		
+		snd_skid.pitch_scale = 0.7 +skikd*0.25
+		snd_skid.unit_db = linear2db(((skikd/1.5)*(1.0-cgroundmaterial))*soundvolume)
+		snd_dirt.unit_db = linear2db(((wheelsforce/100.0)*cgroundmaterial)*soundvolume)
+		snd_dirt.pitch_scale = 1.0 +wheelsforce/100.0
 	else:
-		get_node("skid").unit_db = linear2db(0)
-		get_node("dirt").unit_db = linear2db(0)
-
-	get_node("skid").max_db = get_node("skid").unit_db
-	get_node("dirt").max_db = get_node("dirt").unit_db
+		snd_skid.unit_db = linear2db(0)
+		snd_dirt.unit_db = linear2db(0)
+	
+	snd_skid.max_db = snd_skid.unit_db
+	snd_dirt.max_db = snd_dirt.unit_db
 	
 	skidding = 0.0
 	skidding2 = 0.0	
@@ -554,11 +520,8 @@ func _physics_process(delta):
 	wheelsonground = 0
 	wheelsforce = 0.0
 	
-	if brakethreshold>1.0:
-		brakethreshold = 1.0
-	elif brakethreshold<0.0:
-		brakethreshold = 0.0
-		
+	brakethreshold = clamp(brakethreshold, 0.0, 1.0)
+	
 	brakethresholdrun = brakethreshold
 	
 #	print(brakethresholdrun)
@@ -567,30 +530,20 @@ func _physics_process(delta):
 	
 	gforce = (linear_velocity.length() - pastvelocity)*((0.30592/9.8)*120.0)
 	pastvelocity = linear_velocity.length()
-		
+	
 	var turbovolume = 0.2
 
 	var dist = blow_psi - psi
 	blow_psi = psi
-			
-	blowvol = dist
-	if blowvol<0:
-		blowvol = 0
-	elif blowvol>1:
-		blowvol = 1
-		
-
-	var spoolvol = psi/10.0
-	if spoolvol<0:
-		spoolvol = 0
-	elif spoolvol>1:
-		spoolvol = 1
 	
-		
-	get_node("blow").unit_db = linear2db((blowvol*turbovolume)*soundvolume)
-	get_node("spool").unit_db = linear2db(((spoolvol*1.5)*turbovolume)*soundvolume)
-	get_node("spool").pitch_scale = 0.8 +spoolvol*0.5
-		
-	get_node("blow").max_db = get_node("blow").unit_db
-	get_node("spool").max_db = get_node("spool").unit_db
-		
+	blowvol = clamp(dist, 0.0, 1.0)
+	
+	var spoolvol = clamp(psi/10.0, 0.0, 1.0)
+	
+	snd_blow.unit_db = linear2db((blowvol*turbovolume)*soundvolume)
+	snd_spool.unit_db = linear2db(((spoolvol*1.5)*turbovolume)*soundvolume)
+	snd_spool.pitch_scale = 0.8 +spoolvol*0.5
+	
+	snd_blow.max_db = snd_blow.unit_db
+	snd_spool.max_db = snd_spool.unit_db
+
